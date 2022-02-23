@@ -1,6 +1,8 @@
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
+import matplotlib.pyplot as plt
+import util as util
 
 dataset = np.loadtxt('phishing.csv', delimiter=',', skiprows=1)
 
@@ -15,12 +17,14 @@ model.add(Dense(1, activation='sigmoid'))
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-model.fit(X, Y, epochs=50, batch_size=15)
+history = model.fit(X, Y, validation_split=0.40, epochs=150, batch_size=32)
 
 _, accuracy = model.evaluate(X, Y)
 print('Accuracy:: %.2f' % (accuracy * 100))
 
 predictions = (model.predict(X) > 0.5).astype(int)
 
-for i in range(5):
-    print('%s => %d (expected %d)' % (X[i].tolist(), predictions[i], Y[i]))
+# for i in range(5):
+#   print('%s => %d (expected %d)' % (X[i].tolist(), predictions[i], Y[i]))
+
+util.visualize_trainingdata(history)
