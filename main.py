@@ -11,13 +11,13 @@ X = dataset[:, 0:87]
 Y = dataset[:, 87]
 
 model = Sequential()
-model.add(Dense(12, input_dim=87, activation='relu'))
-model.add(Dense(8, activation='relu'))
+model.add(Dense(24, input_dim=87, activation='relu'))
+model.add(Dense(16, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
 
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-history = model.fit(X, Y, validation_split=0.40, epochs=150, batch_size=32)
+history = model.fit(X, Y, validation_split=0.40, epochs=90, batch_size=32)
 
 _, accuracy = model.evaluate(X, Y)
 print('Accuracy:: %.2f' % (accuracy * 100))
