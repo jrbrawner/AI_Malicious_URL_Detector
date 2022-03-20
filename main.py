@@ -4,7 +4,7 @@ from keras.layers import Dense
 import matplotlib.pyplot as plt
 import util as util
 
-dataset = np.loadtxt('phishing.csv', delimiter=',', skiprows=1)
+dataset = np.loadtxt('data/phishing.csv', delimiter=',', skiprows=1)
 
 # split into input (X) and output (Y) variables
 X = dataset[:, 0:87]

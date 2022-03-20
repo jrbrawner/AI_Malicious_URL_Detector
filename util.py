@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 
 def preprocess():
-    df = pd.read_csv('dataset_phishing.csv')
+    df = pd.read_csv('data/dataset_phishing.csv')
 
     df.drop(['url'], axis=1, inplace=True)
     df.to_csv('phishing.csv', index=False)

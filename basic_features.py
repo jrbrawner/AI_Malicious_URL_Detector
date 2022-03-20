@@ -2,7 +2,6 @@
 import re
 from urllib.parse import urlparse
 import math
-from scipy.stats import entropy
 from collections import Counter
 
 urlList = ['url', 'http://www.crestonwood.com/router.php',
@@ -22,24 +21,22 @@ urlList = ['url', 'http://www.crestonwood.com/router.php',
            'https://monovative-my.sharepoint.com:443/:o:/g/personal/user_monovative_onmicrosoft_com/EmCzKJnKZgxDtejtstZ67qQBlkNaRN4Da620KjAjE91eWQ?e=5:wesEg8&amp;at=9',
            'http://98.126.214.77/ap/signin?openid.pape.max_auth_age=0&amp;openid.return_to=https://www.amazon.co.jp/?ref_=nav_em_hd_re_signin&amp;openid.identity=http://specs.openid.net/auth/2.0/identifier_select&amp;openid.assoc_handle=jpflex&amp;openid.mode=checkid_setup&amp;key=a@b.c&amp;openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&amp;openid.ns=http://specs.openid.net/auth/2.0&amp;&amp;ref_=nav_em_hd_clc_signin',
            'http://swallowthisbitchpics.com/jpg/www.global.visa.com/myca/oce/emea/action/request_type=un_Activation/visa.html']
-file_path = 'C:/Users/jrbbr/OneDrive/Desktop/urls.txt'
 
-all_tld_txt = open('all_tld.txt', "r")
 
-def fill_list_from_txt():
+
+def file_to_list(filepath):
     list = []
-    for line in all_tld_txt:
-        list.append(line.strip())
-    return list
-
-all_tld_list = fill_list_from_txt()
-
-def file_path(filepath):
     file_path = filepath
     # open file with urls to parse, and add to urlList
     with open(file_path, 'r') as read_obj:
         for line in read_obj:
-            urlList.append(line.strip())
+            list.append(line.strip())
+    read_obj.close()
+    return list
+
+
+all_tld_list = file_to_list('data/all_tld.txt')
+all_shortener_list = file_to_list('data/url_shorteners.txt')
 
 
 def count_at(url):
@@ -159,22 +156,33 @@ def url_entropy(url):
     return -sum(count / lns * math.log(count / lns, 2) for count in p.values())
 
 
+# port number in url
 def contains_port(url):
     port = urlparse(url).port
     if port is None:
         return 0
     return 1
 
+
+# http or https in query segment of url
 def http_in_query(url):
     query = urlparse(url).query
     return query.count('http')
 
 
+# checks for tld in path of url
 def tld_in_path(url):
     path = urlparse(url).path
     if path.upper.count(all_tld_list) > 0:
         return 1
     return 0
+
+
+def shortener_in_url(url):
+    if url.count(all_shortener_list) > 0:
+        return 1
+    return 0
+
 
 for i in urlList:
     print(tld_in_path(i))
