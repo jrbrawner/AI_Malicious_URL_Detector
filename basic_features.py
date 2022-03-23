@@ -1,8 +1,10 @@
 # extracts basic features from a full url that can be calculated without contacting external entities on the internet
+
 import re
 from urllib.parse import urlparse
 import math
 from collections import Counter
+import ipaddress as ipaddr
 
 urlList = ['url', 'http://www.crestonwood.com/router.php',
            'http://shadetreetechnology.com/V4/validation/a111aedc8ae390eabcfa130e041a10a4',
@@ -20,8 +22,10 @@ urlList = ['url', 'http://www.crestonwood.com/router.php',
            'http://www.strykertoyhaulers.com/wp-admin/js/online/order.php?email%5Cu003dabuse@euroflightinternational.com',
            'https://monovative-my.sharepoint.com:443/:o:/g/personal/user_monovative_onmicrosoft_com/EmCzKJnKZgxDtejtstZ67qQBlkNaRN4Da620KjAjE91eWQ?e=5:wesEg8&amp;at=9',
            'http://98.126.214.77/ap/signin?openid.pape.max_auth_age=0&amp;openid.return_to=https://www.amazon.co.jp/?ref_=nav_em_hd_re_signin&amp;openid.identity=http://specs.openid.net/auth/2.0/identifier_select&amp;openid.assoc_handle=jpflex&amp;openid.mode=checkid_setup&amp;key=a@b.c&amp;openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select&amp;openid.ns=http://specs.openid.net/auth/2.0&amp;&amp;ref_=nav_em_hd_clc_signin',
-           'http://swallowthisbitchpics.com/jpg/www.global.visa.com/myca/oce/emea/action/request_type=un_Activation/visa.html']
-
+           'http://swallowthisbitchpics.com/jpg/www.global.visa.com/myca/oce/emea/action/request_type=un_Activation/visa.html',
+           'http://107.180.44.78/login.php?cmd=login_submit&amp;id=d38dd677c4dd931661bdc94df4bafb23d38dd677c4dd931661bdc94df4bafb23&amp;session=d38dd677c4dd931661bdc94df4bafb23d38dd677c4dd931661bdc94df4bafb23',
+           'https://bit.ly/2E6D7J1',
+           'http://u.to/x9AVFg']
 
 
 def file_to_list(filepath):
@@ -172,17 +176,28 @@ def http_in_query(url):
 
 # checks for tld in path of url
 def tld_in_path(url):
-    path = urlparse(url).path
-    if path.upper.count(all_tld_list) > 0:
-        return 1
+    path = urlparse(url).path.upper()
+
+    for i in all_tld_list:
+        if path.count(i) > 0:
+            print(i)
+            return 1
     return 0
 
 
-def shortener_in_url(url):
-    if url.count(all_shortener_list) > 0:
-        return 1
+def shortener_url(url):
+    for i in all_shortener_list:
+        if urlparse(url).hostname == i:
+            return 1
     return 0
 
 
-for i in urlList:
-    print(tld_in_path(i))
+def is_ip(url):
+    hostname = urlparse(url).hostname
+    try:
+        ipaddr.ip_address(hostname)
+        return 1
+    except:
+        return 0
+
+
