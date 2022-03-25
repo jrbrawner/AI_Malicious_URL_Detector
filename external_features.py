@@ -1,9 +1,15 @@
-#url features obtained by using external entities
+# url features obtained by using external entities
+import requests
 import whois
+from datetime import datetime
+from urllib.parse import urlparse
+from requests import get
+from bs4 import BeautifulSoup
 
-url = 'http://www.crestonwood.com/router.php'
+url = 'http://www.google.com'
 
-urlList = ['url', 'http://www.crestonwood.com/router.php',
+urlList = ['http://massfromgrass.com',
+           'http://www.crestonwood.com/router.php',
            'http://shadetreetechnology.com/V4/validation/a111aedc8ae390eabcfa130e041a10a4',
            'https://support-appleld.com.secureupdate.duilawyeryork.com/ap/89e6a3b4b063b8d/?cmd=_update&dispatch=89e6a3b4b063b8d1b&locale=_',
            'http://rgipt.ac.in',
@@ -25,14 +31,114 @@ urlList = ['url', 'http://www.crestonwood.com/router.php',
            'http://u.to/x9AVFg']
 
 
+def whois_registered_domain():
+    return
 
-
-#months since domain was registered
+# months since domain was registered, using average days in a month
 def months_since_creation(url):
-    w = whois.whois(url)
-    creation_date = w.creation_date
-    print(creation_date)
+    url_host = str(urlparse(url).hostname)
+    try:
+        w = whois.whois(url_host)
+    except whois.parser.PywhoisError:
+        # registry does not contain domain, domain is expired, or is not .com,.net,.edu?
+        return -1
+    try:
+        creation_date = w.creation_date[0]
+    except:
+        creation_date = w.creation_date
+
+    formatted_creation_date = str(creation_date)
+    formatted_creation_date = formatted_creation_date.split(" ")[0]
+    today = str(datetime.today())
+    formatted_today = today.split(" ", )[0]
+    months = months_between(formatted_today, formatted_creation_date) / 30.4
+    return months.__round__()
 
 
+def months_since_expired(url):
+    url_host = str(urlparse(url).hostname)
+    try:
+        w = whois.whois(url_host)
+    except whois.parser.PywhoisError:
+        # registry does not contain domain, domain is expired, or is not .com,.net,.edu?
+        return -1
+    try:
+        expiration_date = w.expiration_date[0]
+    except:
+        expiration_date = w.expiration_date
 
-months_since_creation(url)
+    formatted_expiration_date = str(expiration_date)
+    formatted_expiration_date = formatted_expiration_date.split(" ")[0]
+    today = str(datetime.today())
+    formatted_today = today.split(" ", )[0]
+    if formatted_expiration_date > today:
+        # domain not expired
+        print(formatted_expiration_date)
+        return 0
+    months = months_between(formatted_today, formatted_expiration_date) / 30.4
+    return months.__round__()
+
+
+def months_between(d1, d2):
+    try:
+        d1 = datetime.strptime(d1, "%Y-%m-%d")
+        d2 = datetime.strptime(d2, "%Y-%m-%d")
+        return abs((d2 - d1).days)
+    except:
+        print(str(d1) + str(d2))
+        return 0
+
+
+def url_is_live(url):
+    try:
+        request = get(url)
+        if request.status_code == 200:
+            return 1
+    except requests.ConnectionError:
+        # cannot access link
+        print(str(urlparse(url).hostname) + " Connection Error")
+    return 0
+
+
+def num_redirects(url):
+    try:
+        request = requests.get(url)
+        if request.history:
+            print('Request was redirected ' + str(len(request.history)) + ' times.')
+            return len(request.history)
+    except:
+        # some kind of error, url isnt accessible, etc.
+        print('Error')
+        return -1
+    # no redirects
+    return 0
+
+
+def get_html(url):
+    try:
+        request = requests.get(url)
+        soup = BeautifulSoup(request.content, 'html.parser')
+        return soup
+    except:
+        print('Error in reaching page.')
+
+
+def body_length(url):
+    try:
+        soup = get_html(url)
+        return len(soup.find('body').text)
+    except:
+        print('body_length Error')
+        return 0
+
+def num_titles(url):
+    try:
+        soup = get_html(url)
+        titles = soup.findAll('title')
+        return titles
+    except:
+        print('num_titles Error')
+        return 0
+
+
+print(num_titles(url))
