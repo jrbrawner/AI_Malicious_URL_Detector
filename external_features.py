@@ -131,14 +131,5 @@ def body_length(url):
         print('body_length Error')
         return 0
 
-def num_titles(url):
-    try:
-        soup = get_html(url)
-        titles = soup.findAll('title')
-        return titles
-    except:
-        print('num_titles Error')
-        return 0
 
 
-print(num_titles(url))

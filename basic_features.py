@@ -55,6 +55,7 @@ def count_host_length(url):
     return len(urlparse(url).hostname)
 
 
+
 def count_dots(url):
     return url.count('.')
 
