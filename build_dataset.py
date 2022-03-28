@@ -1,8 +1,8 @@
 import basic_features
 import external_features
 
-column_names = ['url', 'num_@', 'url_length', 'num_.', 'num_-', 'num_?', 'num_&', 'num_=', 'num_','num_%',
-                'num_/',
+column_names = ['url', 'num_@', 'url_length','host_length', 'num_.', 'num_-', 'num_?', 'num_&',
+                'num_=', 'num_','num_~','num_%', 'num_/',
                 'num_*', 'num_:', 'num_comma', 'num_;', 'num_$',
                 'numSpaces', 'num_www', 'num_com', 'num_bslash', 'num_digits', 'num_params', 'is_https',
                 'hostname_2length_ratio', 'url_entropy', 'contains_port',
@@ -61,8 +61,12 @@ def write_csv(filename):
                 write_obj.write(str(column_names[i]) + '\n')
         for i in url_list:
             temp = build_basic_features(i)
-            for x in temp:
-                write_obj(str(temp) + ',')
+            for x in range(len(temp)):
+                try:
+                    j = (temp[x+1])
+                    write_obj.write(str(temp[x]) + ',')
+                except IndexError:
+                    write_obj.write(str(temp[x]) + '\n')
 
 
         print('Done')

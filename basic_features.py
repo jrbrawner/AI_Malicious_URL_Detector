@@ -128,6 +128,7 @@ def count_bslash(url):
     return url.count('\\')
 
 
+#this is a copy of url length?
 def count_digits(url):
     return len(url)
 
@@ -181,7 +182,6 @@ def tld_in_path(url):
 
     for i in all_tld_list:
         if path.count(i) > 0:
-            print(i)
             return 1
     return 0
 
