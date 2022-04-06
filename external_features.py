@@ -66,17 +66,20 @@ def months_since_expired(url):
         expiration_date = w.expiration_date[0]
     except:
         expiration_date = w.expiration_date
-
-    formatted_expiration_date = str(expiration_date)
-    formatted_expiration_date = formatted_expiration_date.split(" ")[0]
-    today = str(datetime.today())
-    formatted_today = today.split(" ", )[0]
-    if formatted_expiration_date > today:
-        # domain not expired
-        print(formatted_expiration_date)
-        return 0
-    months = months_between(formatted_today, formatted_expiration_date) / 30.4
-    return months.__round__()
+    try:
+        formatted_expiration_date = str(expiration_date)
+        formatted_expiration_date = formatted_expiration_date.split(" ")[0]
+        today = str(datetime.today())
+        formatted_today = today.split(" ", )[0]
+        if formatted_expiration_date > today:
+            # domain not expired
+            print(str(url) + ' months_since_expired ' + formatted_expiration_date)
+            return 0
+        months = months_between(formatted_today, formatted_expiration_date) / 30.4
+        return months.__round__()
+    except:
+        print("Error")
+        return
 
 
 def months_between(d1, d2):
@@ -85,30 +88,33 @@ def months_between(d1, d2):
         d2 = datetime.strptime(d2, "%Y-%m-%d")
         return abs((d2 - d1).days)
     except:
-        print(str(d1) + str(d2))
+        print('Months_between error ' + 'First date - ' + str(d1) + ' Second date - ' + str(d2))
         return 0
 
 
 def url_is_live(url):
     try:
-        request = get(url)
+        request = get(url, timeout=6)
         if request.status_code == 200:
             return 1
     except requests.ConnectionError:
         # cannot access link
         print(str(urlparse(url).hostname) + " Connection Error")
-    return 0
+        return 0
+    except:
+        return 0
+    return -1
 
 
 def num_redirects(url):
     try:
-        request = requests.get(url)
+        request = requests.get(url, timeout=6)
         if request.history:
             print('Request was redirected ' + str(len(request.history)) + ' times.')
             return len(request.history)
     except:
         # some kind of error, url isnt accessible, etc.
-        print('Error')
+        print(str(url) + ' Num Redirects Error')
         return -1
     # no redirects
     return 0
@@ -116,11 +122,12 @@ def num_redirects(url):
 
 def get_html(url):
     try:
-        request = requests.get(url)
+        request = requests.get(url,timeout=6)
         soup = BeautifulSoup(request.content, 'html.parser')
         return soup
     except:
-        print('Error in reaching page.')
+        print(str(url) + ' Error in reaching page.')
+        return
 
 
 def body_length(url):
@@ -128,7 +135,7 @@ def body_length(url):
         soup = get_html(url)
         return len(soup.find('body').text)
     except:
-        print('body_length Error')
+        print(str(url) + ' body_length Error')
         return 0
 
 

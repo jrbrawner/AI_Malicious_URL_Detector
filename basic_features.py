@@ -52,8 +52,10 @@ def count_url_length(url):
 
 
 def count_host_length(url):
-    return len(urlparse(url).hostname)
-
+    try:
+        return len(urlparse(url).hostname)
+    except:
+        return 0
 
 
 def count_dots(url):
@@ -128,7 +130,7 @@ def count_bslash(url):
     return url.count('\\')
 
 
-#this is a copy of url length?
+# this is a copy of url length?
 def count_digits(url):
     return len(url)
 
@@ -152,8 +154,10 @@ def is_https(url):
 
 # returns the ratio of letters in hostname compared to letters in full url
 def ratio_hostname_2length(url):
-    return len(urlparse(url).hostname) / (len(url))
-
+    try:
+        return len(urlparse(url).hostname) / (len(url))
+    except:
+        return 0
 
 # shannon formula for calculating entropy of the hostname, high entropy can be indicative of DGA
 def url_entropy(url):

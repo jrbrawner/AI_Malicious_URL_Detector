@@ -1,15 +1,16 @@
 import basic_features
 import external_features
+import util
 
-column_names = ['url', 'num_@', 'url_length','host_length', 'num_.', 'num_-', 'num_?', 'num_&',
-                'num_=', 'num_','num_~','num_%', 'num_/',
+column_names = ['url', 'num_@', 'url_length', 'host_length', 'num_.', 'num_-', 'num_?', 'num_&',
+                'num_=', 'num_', 'num_~', 'num_%', 'num_/',
                 'num_*', 'num_:', 'num_comma', 'num_;', 'num_$',
                 'numSpaces', 'num_www', 'num_com', 'num_bslash', 'num_digits', 'num_params', 'is_https',
                 'hostname_2length_ratio', 'url_entropy', 'contains_port',
-                'http_in_query', 'tld_in_path', 'shortener_url', 'is_ip']
+                'http_in_query', 'tld_in_path', 'shortener_url', 'is_ip', 'months_since_creation',
+                'months_since_expired', 'url_is_live', 'num_redirects', 'body_length']
 
 url_list = []
-
 
 def build_basic_features(url):
     # basic features
@@ -47,6 +48,12 @@ def build_basic_features(url):
     features_list.append(basic_features.tld_in_path(url))
     features_list.append(basic_features.shortener_url(url))
     features_list.append(basic_features.is_ip(url))
+    #
+    features_list.append(external_features.months_since_creation(url))
+    features_list.append(external_features.months_since_expired(url))
+    features_list.append(external_features.url_is_live(url))
+    features_list.append(external_features.num_redirects(url))
+    features_list.append(external_features.body_length(url))
 
     return features_list
 
@@ -55,19 +62,26 @@ def write_csv(filename):
     with open(filename, 'w') as write_obj:
         for i in range(len(column_names)):
             try:
-                j = (column_names[i + 1])
-                write_obj.write(str(column_names[i]) + ',')
+                if i == len(column_names) - 1:
+                    write_obj.write(str(column_names[i]) + '\n')
+                else:
+                    write_obj.write(str(column_names[i]) + ',')
             except IndexError:
                 write_obj.write(str(column_names[i]) + '\n')
         for i in url_list:
             temp = build_basic_features(i)
             for x in range(len(temp)):
                 try:
-                    j = (temp[x+1])
-                    write_obj.write(str(temp[x]) + ',')
+                    if temp[0].count(',') > 0:
+                        temp[0] = temp[0].replace(',', '(COMMA)')
+                    if x == len(temp) - 1:
+                        write_obj.write(str(temp[x]) + '\n')
+                    else:
+                        write_obj.write(str(temp[x]) + ',')
                 except IndexError:
                     write_obj.write(str(temp[x]) + '\n')
-
-
-        print('Done')
     write_obj.close()
+    print('Dataset built.')
+
+
+

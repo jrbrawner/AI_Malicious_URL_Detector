@@ -5,14 +5,15 @@ from tkinter import ttk, END
 from tkinter import scrolledtext
 from tkinter import filedialog as fd
 from build_dataset import *
+from keras.models import model_from_json
 
 
 ### Used for preparing csv data to be used with keras
 def preprocess():
-    df = pd.read_csv('data/dataset_phishing.csv')
+    df = pd.read_csv('data/b.csv')
 
     df.drop(['url'], axis=1, inplace=True)
-    df.to_csv('phishing.csv', index=False)
+    df.to_csv('data/b1.csv', index=False)
 
     print('Processing complete.')
 
@@ -72,6 +73,43 @@ def write_xlsx(filename):
     pass
 
 
+def get_url():
+    url = ''
+    url = url_input.get('1.0', 'end-1c')
+    return url
+
+
+def analyze_url():
+    # load json and create model
+    json_file = open('model/model.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights('model/model_weights.h5')
+    print('Model loaded.')
+
+    url = get_url()
+    features = build_basic_features(url)
+
+    features.remove(url)
+    for x in features:
+        print(x)
+
+    test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 36)
+
+    loaded_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    acc = (loaded_model.predict(test))
+    print('Accuracy is: ' + str(acc[0]))
+    tk.Label(tab1, text='Model confidence is: ' + str(acc), font=('Times New Roman', 15)).grid(column=0, row=5)
+    prediction = (acc > 0.5).astype(int)
+
+    if prediction == 0:
+        text_outputTab1.insert(END, 'URL is not malicious.' + "\n", 'success')
+    else:
+        text_outputTab1.insert(END, 'URL is malicious.' + "\n", 'warning')
+
+
 ############################################################################################
 ### Code for GUI
 
@@ -95,7 +133,20 @@ url_input = scrolledtext.ScrolledText(tab1, wrap=tk.WORD, height=3, width=50, fo
 
 url_input.grid(column=0, row=3, pady=10, padx=10)
 
-###Tab 2
+checkURLButton = tk.Button(tab1, height=2, width=25, text='Analyze URL.', command=lambda: analyze_url())
+checkURLButton.grid(column=0, row=4, padx=10, pady=10)
+
+text_outputTab1 = scrolledtext.ScrolledText(tab1, wrap=tk.WORD,
+                                            width=50, height=10,
+                                            bg="light grey",
+                                            font=("Times New Roman", 15))
+
+text_outputTab1.tag_config('warning', background="light grey", foreground="red")
+text_outputTab1.tag_config('success', background="light grey", foreground="green")
+
+text_outputTab1.grid(column=0, row=6, pady=10, padx=10)
+
+###################################Tab 2
 ttk.Label(tab2, text="Turn URL List into dataset of URL features.",
           font=("Times New Roman", 15)).grid(column=0, row=0, pady=3)
 ttk.Label(tab2, text="See README file for more information.",
