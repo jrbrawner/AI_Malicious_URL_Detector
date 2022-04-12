@@ -90,7 +90,7 @@ def analyze_url():
     print('Model loaded.')
 
     url = get_url()
-    features = build_basic_features(url)
+    features = build_dataset(url)
 
     features.remove(url)
     for x in features:

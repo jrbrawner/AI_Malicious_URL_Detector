@@ -1,5 +1,5 @@
-import basic_features
-import external_features
+from basic_features import BasicFeatures
+from external_features import ExternalFeatures
 import util
 
 column_names = ['url', 'num_@', 'url_length', 'host_length', 'num_.', 'num_-', 'num_?', 'num_&',
@@ -7,53 +7,23 @@ column_names = ['url', 'num_@', 'url_length', 'host_length', 'num_.', 'num_-', '
                 'num_*', 'num_:', 'num_comma', 'num_;', 'num_$',
                 'numSpaces', 'num_www', 'num_com', 'num_bslash', 'num_digits', 'num_params', 'is_https',
                 'hostname_2length_ratio', 'url_entropy', 'contains_port',
-                'http_in_query', 'tld_in_path', 'shortener_url', 'is_ip', 'months_since_creation',
-                'months_since_expired', 'url_is_live', 'num_redirects', 'body_length']
+                'http_in_query', 'tld_in_path', 'shortener_url', 'is_ip', 'url_length_sus',
+                'months_since_creation', 'sus_extension_type', 'phish_hints', 'count_fragment',
+                'months_since_expired', 'url_is_live', 'num_redirects', 'body_length',
+                'numImages', 'numLinks', 'script_length', 'specialCharacters', 'scriptBodyRatio']
 
-url_list = []
 
-def build_basic_features(url):
+def build_dataset(url):
     # basic features
     features_list = []
 
-    features_list.append(url)
-    features_list.append(basic_features.count_at(url))
-    features_list.append(basic_features.count_url_length(url))
-    features_list.append(basic_features.count_host_length(url))
-    features_list.append(basic_features.count_dots(url))
-    features_list.append(basic_features.count_hyphens(url))
-    features_list.append(basic_features.count_question_marks(url))
-    features_list.append(basic_features.count_and(url))
-    features_list.append(basic_features.count_eq(url))
-    features_list.append(basic_features.count_underscore(url))
-    features_list.append(basic_features.count_tilde(url))
-    features_list.append(basic_features.count_percent(url))
-    features_list.append(basic_features.count_slash(url))
-    features_list.append(basic_features.count_star(url))
-    features_list.append(basic_features.count_colon(url))
-    features_list.append(basic_features.count_comma(url))
-    features_list.append(basic_features.count_semicolon(url))
-    features_list.append(basic_features.count_dollar(url))
-    features_list.append(basic_features.count_space(url))
-    features_list.append(basic_features.count_www(url))
-    features_list.append(basic_features.count_com(url))
-    features_list.append(basic_features.count_bslash(url))
-    features_list.append(basic_features.count_digits(url))
-    features_list.append(basic_features.count_url_params(url))
-    features_list.append(basic_features.is_https(url))
-    features_list.append(basic_features.ratio_hostname_2length(url))
-    features_list.append(basic_features.url_entropy(url))
-    features_list.append(basic_features.contains_port(url))
-    features_list.append(basic_features.http_in_query(url))
-    features_list.append(basic_features.tld_in_path(url))
-    features_list.append(basic_features.shortener_url(url))
-    features_list.append(basic_features.is_ip(url))
-    #
-    features_list.append(external_features.months_since_creation(url))
-    features_list.append(external_features.months_since_expired(url))
-    features_list.append(external_features.url_is_live(url))
-    features_list.append(external_features.num_redirects(url))
-    features_list.append(external_features.body_length(url))
+    basicfeatures = BasicFeatures(url)
+    for i in basicfeatures.build():
+        features_list.append(i)
+
+    externalfeatures = ExternalFeatures(url)
+    for i in externalfeatures.build():
+        features_list.append(i)
 
     return features_list
 
@@ -69,7 +39,7 @@ def write_csv(filename):
             except IndexError:
                 write_obj.write(str(column_names[i]) + '\n')
         for i in url_list:
-            temp = build_basic_features(i)
+            temp = build_dataset(i)
             for x in range(len(temp)):
                 try:
                     if temp[0].count(',') > 0:
@@ -82,6 +52,3 @@ def write_csv(filename):
                     write_obj.write(str(temp[x]) + '\n')
     write_obj.close()
     print('Dataset built.')
-
-
-
