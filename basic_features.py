@@ -200,19 +200,19 @@ class BasicFeatures:
         data.append(self.count_hyphens())
         data.append(self.count_question_marks())
         data.append(self.count_and())
+
         data.append(self.count_eq())
         data.append(self.count_underscore())
         data.append(self.count_tilde())
         data.append(self.count_percent())
         data.append(self.count_slash())
-        data.append(self.count_star())
-        data.append(self.count_colon())
-        data.append(self.count_slash())
+
         data.append(self.count_star())
         data.append(self.count_colon())
         data.append(self.count_comma())
         data.append(self.count_semicolon())
         data.append(self.count_dollar())
+
         data.append(self.count_space())
         data.append(self.count_www())
         data.append(self.count_com())
@@ -220,12 +220,19 @@ class BasicFeatures:
         data.append(self.count_digits())
         data.append(self.count_url_params())
         data.append(self.is_https())
+
         data.append(self.ratio_hostname_2length())
         data.append(self.url_entropy())
         data.append(self.contains_port())
+
         data.append(self.http_in_query())
         data.append(self.tld_in_path())
         data.append(self.shortener_url())
         data.append(self.is_ip())
+        data.append(self.url_length_suspicious())
+        data.append(self.sus_extension_type())
+
+        data.append(self.phish_hints())
+        data.append(self.count_fragment())
 
         return data

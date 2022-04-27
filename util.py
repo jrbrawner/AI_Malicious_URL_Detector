@@ -7,6 +7,7 @@ from tkinter import filedialog as fd
 from build_dataset import *
 from keras.models import model_from_json
 
+url_list = []
 
 ### Used for preparing csv data to be used with keras
 def preprocess():
@@ -60,13 +61,13 @@ def get_save_location():
 
     if '.csv' in filename:
         filename = filename
-        write_csv(filename)
+        write_csv(filename, url_list)
     if '.xlsx' in filename:
         filename = filename
-        write_xlsx(filename)
+        write_xlsx(filename, url_list)
     if '.csv' not in filename and '.xlsx' not in filename:
         filename = filename + default_extension
-        write_csv(filename)
+        write_csv(filename, url_list)
 
 
 def write_xlsx(filename):
@@ -92,11 +93,11 @@ def analyze_url():
     url = get_url()
     features = build_dataset(url)
 
-    features.remove(url)
+    #features.remove(url)
     for x in features:
         print(x)
 
-    test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 36)
+    test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 43)
 
     loaded_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     acc = (loaded_model.predict(test))

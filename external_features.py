@@ -66,7 +66,7 @@ class ExternalFeatures:
             months = self.months_between(formatted_today, formatted_expiration_date) / 30.4
             return months.__round__()
         except:
-            return
+            return 0
 
     def months_between(self, d1, d2):
         try:
@@ -98,7 +98,6 @@ class ExternalFeatures:
             return 0
 
     def numImages(self):
-
         if self.response is not None:
             return len([i for i in self.pq('img').items()])
         else:
@@ -136,8 +135,15 @@ class ExternalFeatures:
             return 0
 
     def build(self):
-        data = [self.months_since_creation(), self.months_since_expired(), self.url_is_live(), self.num_redirects(),
-                self.body_length(), self.numLinks(), self.script_length(), self.specialCharacters(),
+        data = [self.months_since_creation(),
+                self.months_since_expired(),
+                self.url_is_live(),
+                self.num_redirects(),
+                self.body_length(),
+                self.numLinks(),
+                self.numImages(),
+                self.script_length(),
+                self.specialCharacters(),
                 self.scriptToBodyRatio()]
 
         return data

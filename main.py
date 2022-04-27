@@ -9,12 +9,12 @@ import util as util
 dataset = np.loadtxt('data/b1.csv', delimiter=',', skiprows=1)
 
 # split into input (X) and output (Y) variables
-X = dataset[:, 0:36]
-Y = dataset[:, 36]
+X = dataset[:, 0:43]
+Y = dataset[:, 43]
 
 # construct model
 model = Sequential()
-model.add(Dense(24, input_dim=36, activation='relu'))
+model.add(Dense(24, input_dim=43, activation='relu'))
 model.add(Dense(16, activation='relu'))
 model.add(Dense(8, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
