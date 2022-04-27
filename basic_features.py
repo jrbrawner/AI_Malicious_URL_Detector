@@ -165,7 +165,6 @@ class BasicFeatures:
         except:
             return 0
 
-    ### add to build dataset list
     def url_length_suspicious(self):
         if len(self.url) > 75:
             return 1
@@ -189,6 +188,11 @@ class BasicFeatures:
     def count_fragment(self):
         fragments = self.url.split('#')
         return len(fragments) - 1
+
+
+
+
+
 
     def build(self):
         data = []

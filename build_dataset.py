@@ -30,6 +30,7 @@ def build_dataset(url):
 
 def write_csv(filename, url_list):
     count = 0
+    num = len(url_list)
     with open(filename, 'w') as write_obj:
         for i in range(len(column_names)):
             try:
@@ -41,21 +42,17 @@ def write_csv(filename, url_list):
                 write_obj.write(str(column_names[i]) + '\n')
         for i in url_list:
             temp = build_dataset(i)
+            count = count + 1
+            print((str(count) + ' URLs analyzed out of ' + str(num) + '.'))
             for x in range(len(temp)):
                 try:
                     #if temp[0].count(',') > 0:
                      #   temp[0] = temp[0].replace(',', '(COMMA)')
                     if x == len(temp) - 1:
                         write_obj.write(str(temp[x]) + '\n')
-                        print(count)
-                        count = count + 1
                     else:
                         write_obj.write(str(temp[x]) + ',')
-                        print(count)
-                        count = count + 1
                 except IndexError:
                     write_obj.write(str(temp[x]) + '\n')
-                    print(count)
-                    count = count + 1
     write_obj.close()
     print('Dataset built.')

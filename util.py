@@ -97,7 +97,7 @@ def analyze_url():
     for x in features:
         print(x)
 
-    test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 43)
+    test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 45)
 
     loaded_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     acc = (loaded_model.predict(test))
