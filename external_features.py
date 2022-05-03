@@ -134,6 +134,27 @@ class ExternalFeatures:
         else:
             return 0
 
+    def page_rank(self):
+        # rate limited to 1800 requests per hour
+        # time.sleep(1)
+        domain = urlparse(self.url).hostname
+        key = 'soo8scggk4woo0c00o4gsgckgg8wkoowwokcg40g'
+        url = 'https://openpagerank.com/api/v1.0/getPageRank?domains%5B0%5D=' + str(domain)
+        try:
+
+            request = requests.get(url, headers={'API-OPR': key})
+            result = request.json()
+            result = result['response'][0]['page_rank_integer']
+            if result:
+                return result
+            else:
+                return 0
+        except:
+            return -1
+
+
+
+
     def build(self):
         data = [self.months_since_creation(),
                 self.months_since_expired(),
@@ -144,6 +165,7 @@ class ExternalFeatures:
                 self.numImages(),
                 self.script_length(),
                 self.specialCharacters(),
-                self.scriptToBodyRatio()]
+                self.scriptToBodyRatio(),
+                self.page_rank()]
 
         return data

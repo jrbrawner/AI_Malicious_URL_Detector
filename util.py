@@ -4,10 +4,21 @@ import tkinter as tk
 from tkinter import ttk, END
 from tkinter import scrolledtext
 from tkinter import filedialog as fd
-from build_dataset import *
 from keras.models import model_from_json
+from basic_features import BasicFeatures
+from external_features import ExternalFeatures
 
 url_list = []
+column_names = ['num_@', 'url_length', 'host_length', 'num_.', 'num_-', 'num_?', 'num_&',
+                'num_=', 'num_', 'num_~', 'num_%', 'num_/',
+                'num_*', 'num_:', 'num_comma', 'num_;', 'num_$',
+                'numSpaces', 'num_www', 'num_com', 'num_bslash', 'num_digits', 'num_params', 'is_https',
+                'hostname_2length_ratio', 'url_entropy', 'contains_port',
+                'http_in_query', 'tld_in_path', 'shortener_url', 'is_ip', 'url_length_sus', 'sus_extension_type',
+                'phish_hints', 'count_fragment', 'months_since_creation',
+                'months_since_expired', 'url_is_live', 'num_redirects', 'body_length', 'numLinks',
+                'numImages', 'script_length', 'specialCharacters', 'scriptBodyRatio', 'open_page_rank']
+
 
 ### Used for preparing csv data to be used with keras
 def preprocess():
@@ -54,24 +65,70 @@ def get_urllist_file_path():
 
 
 ###Used to obtain desired filepath for built dataset
-# Can be saved as csv or xlsx, csv is default
 def get_save_location():
     default_extension = '.csv'
-    filename = fd.asksaveasfilename(filetypes=(('csv file', '.csv'), ('excel file ', '.xlsx')))
+    filename = fd.asksaveasfilename(filetypes=(('csv file', '.csv'),))
 
     if '.csv' in filename:
         filename = filename
         write_csv(filename, url_list)
-    if '.xlsx' in filename:
-        filename = filename
-        write_xlsx(filename, url_list)
-    if '.csv' not in filename and '.xlsx' not in filename:
+    if '.csv' not in filename:
         filename = filename + default_extension
         write_csv(filename, url_list)
 
 
-def write_xlsx(filename):
-    pass
+### Used to obtain feature set from an url.
+def build_dataset(url):
+    # basic features
+    features_list = []
+
+    basicfeatures = BasicFeatures(url)
+    for i in basicfeatures.build():
+        features_list.append(i)
+
+    externalfeatures = ExternalFeatures(url)
+    for i in externalfeatures.build():
+        features_list.append(i)
+
+    return features_list
+
+
+def insertUpdate(url_count, url_length):
+    text_output.insert(END, str(url_count) + ' URLs analyzed out of ' + str(url_length) + '.' + '\n')
+    root.update()
+
+
+### Writes feature set of url to csv file.
+def write_csv(filename, url_list):
+    count = 0
+    numUrls = len(url_list)
+    text_output.delete("1.0", "end")
+    with open(filename, 'w') as write_obj:
+        for i in range(len(column_names)):
+            try:
+                if i == len(column_names) - 1:
+                    write_obj.write(str(column_names[i]) + '\n')
+                else:
+                    write_obj.write(str(column_names[i]) + ',')
+            except IndexError:
+                write_obj.write(str(column_names[i]) + '\n')
+        for i in url_list:
+            temp = build_dataset(i)
+            count = count + 1
+            print((str(count) + ' URLs analyzed out of ' + str(numUrls) + '.'))
+            insertUpdate(count, numUrls)
+            for x in range(len(temp)):
+                try:
+                    # if temp[0].count(',') > 0:
+                    #   temp[0] = temp[0].replace(',', '(COMMA)')
+                    if x == len(temp) - 1:
+                        write_obj.write(str(temp[x]) + '\n')
+                    else:
+                        write_obj.write(str(temp[x]) + ',')
+                except IndexError:
+                    write_obj.write(str(temp[x]) + '\n')
+    write_obj.close()
+    print('Dataset built.')
 
 
 def get_url():
@@ -80,6 +137,7 @@ def get_url():
     return url
 
 
+# Take user URL, turn into feature set, and analyze with saved model.
 def analyze_url():
     # load json and create model
     json_file = open('model/model.json', 'r')
@@ -93,22 +151,25 @@ def analyze_url():
     url = get_url()
     features = build_dataset(url)
 
-    #features.remove(url)
+    count = 0
     for x in features:
-        print(x)
+        print(str(column_names[count]) + " " + str(features[count]))
+        count = count + 1
 
-    test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 45)
+    test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 46)
 
     loaded_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     acc = (loaded_model.predict(test))
-    print('Accuracy is: ' + str(acc[0]))
-    tk.Label(tab1, text='Model confidence is: ' + str(acc), font=('Times New Roman', 15)).grid(column=0, row=5)
+
+    accuracy = acc[0]
+    print('Model acc: ' + str(acc[0]))
+    tk.Label(tab1, text='Model confidence is: ' + str(accuracy), font=('Times New Roman', 15)).grid(column=0, row=5)
     prediction = (acc > 0.5).astype(int)
 
     if prediction == 0:
-        text_outputTab1.insert(END, 'URL is not malicious.' + "\n", 'success')
+        text_outputTab1.insert(END, url + ' is not malicious.' + "\n", 'success')
     else:
-        text_outputTab1.insert(END, 'URL is malicious.' + "\n", 'warning')
+        text_outputTab1.insert(END, url + ' is malicious.' + "\n", 'warning')
 
 
 ############################################################################################
@@ -130,7 +191,7 @@ tabControl.grid()
 ttk.Label(tab1, text="Enter URL for analysis.",
           font=('Times New Roman', 15)).grid(column=0, row=0, pady=3)
 
-url_input = scrolledtext.ScrolledText(tab1, wrap=tk.WORD, height=3, width=50, font=("Times New Roman", 15))
+url_input = scrolledtext.ScrolledText(tab1, wrap=tk.WORD, height=5, width=75, font=("Times New Roman", 15))
 
 url_input.grid(column=0, row=3, pady=10, padx=10)
 
@@ -138,7 +199,7 @@ checkURLButton = tk.Button(tab1, height=2, width=25, text='Analyze URL.', comman
 checkURLButton.grid(column=0, row=4, padx=10, pady=10)
 
 text_outputTab1 = scrolledtext.ScrolledText(tab1, wrap=tk.WORD,
-                                            width=50, height=10,
+                                            width=75, height=10,
                                             bg="light grey",
                                             font=("Times New Roman", 15))
 
@@ -147,34 +208,34 @@ text_outputTab1.tag_config('success', background="light grey", foreground="green
 
 text_outputTab1.grid(column=0, row=6, pady=10, padx=10)
 
-###################################Tab 2
+################################### Tab 2 - Build Dataset Tab
 ttk.Label(tab2, text="Turn URL List into dataset of URL features.",
           font=("Times New Roman", 15)).grid(column=0, row=0, pady=3)
 ttk.Label(tab2, text="See README file for more information.",
           font=("Times New Roman", 15)).grid(column=0, row=1, pady=3)
 
 text_input = scrolledtext.ScrolledText(tab2, wrap=tk.WORD,
-                                       width=50, height=3,
+                                       width=75, height=3,
                                        font=("Times New Roman", 15))
 
 text_input.grid(column=0, row=3, pady=10, padx=10)
 
 text_output = scrolledtext.ScrolledText(tab2, wrap=tk.WORD,
-                                        width=50, height=3,
+                                        width=75, height=10,
                                         bg="light grey",
                                         font=("Times New Roman", 15))
 
 text_output.grid(column=0, row=6, pady=10, padx=10)
 
-url_list_location_button = tk.Button(tab2, height=2,
-                                     width=25,
+url_list_location_button = tk.Button(tab2, height=3,
+                                     width=50,
                                      text="Open URL List",
                                      command=lambda: get_urllist_file_path())
 
 url_list_location_button.grid(column=0, row=2, pady=10, padx=10)
 
-save_location_button = tk.Button(tab2, height=2,
-                                 width=25,
+save_location_button = tk.Button(tab2, height=3,
+                                 width=50,
                                  text="Select Save Location For Features",
                                  command=lambda: get_save_location())
 
