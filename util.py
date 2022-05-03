@@ -4,20 +4,22 @@ import tkinter as tk
 from tkinter import ttk, END
 from tkinter import scrolledtext
 from tkinter import filedialog as fd
-from keras.models import model_from_json
 from basic_features import BasicFeatures
 from external_features import ExternalFeatures
+import joblib
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 url_list = []
 column_names = ['num_@', 'url_length', 'host_length', 'num_.', 'num_-', 'num_?', 'num_&',
                 'num_=', 'num_', 'num_~', 'num_%', 'num_/',
                 'num_*', 'num_:', 'num_comma', 'num_;', 'num_$',
-                'numSpaces', 'num_www', 'num_com', 'num_bslash', 'num_digits', 'num_params', 'is_https',
+                'numSpaces', 'num_www', 'num_com', 'num_bslash', 'num_digits', 'num_params',
                 'hostname_2length_ratio', 'url_entropy', 'contains_port',
                 'http_in_query', 'tld_in_path', 'shortener_url', 'is_ip', 'url_length_sus', 'sus_extension_type',
                 'phish_hints', 'count_fragment', 'months_since_creation',
                 'months_since_expired', 'url_is_live', 'num_redirects', 'body_length', 'numLinks',
-                'numImages', 'script_length', 'specialCharacters', 'scriptBodyRatio', 'open_page_rank']
+                'numImages', 'script_length', 'specialCharacters', 'scriptBodyRatio', 'open_page_rank', 'is_https']
 
 
 ### Used for preparing csv data to be used with keras
@@ -96,6 +98,7 @@ def build_dataset(url):
 def insertUpdate(url_count, url_length):
     text_output.insert(END, str(url_count) + ' URLs analyzed out of ' + str(url_length) + '.' + '\n')
     root.update()
+    text_output.see(END)
 
 
 ### Writes feature set of url to csv file.
@@ -139,14 +142,10 @@ def get_url():
 
 # Take user URL, turn into feature set, and analyze with saved model.
 def analyze_url():
-    # load json and create model
-    json_file = open('model/model.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
-    # load weights into new model
-    loaded_model.load_weights('model/model_weights.h5')
-    print('Model loaded.')
+    # load model
+    filename = "model/rf_model.joblib"
+    rf_model = joblib.load(filename)
+
 
     url = get_url()
     features = build_dataset(url)
@@ -158,13 +157,10 @@ def analyze_url():
 
     test = pd.DataFrame(features).replace(True, 1).replace(False, 0).to_numpy().reshape(-1, 46)
 
-    loaded_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    acc = (loaded_model.predict(test))
+    prediction = rf_model.predict(test)
 
-    accuracy = acc[0]
-    print('Model acc: ' + str(acc[0]))
-    tk.Label(tab1, text='Model confidence is: ' + str(accuracy), font=('Times New Roman', 15)).grid(column=0, row=5)
-    prediction = (acc > 0.5).astype(int)
+    print('Model prediction: ' + str(prediction))
+    #tk.Label(tab1, text='Model confidence is: ' + str(accuracy), font=('Times New Roman', 15)).grid(column=0, row=5)
 
     if prediction == 0:
         text_outputTab1.insert(END, url + ' is not malicious.' + "\n", 'success')

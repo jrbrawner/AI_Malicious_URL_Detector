@@ -1,45 +1,39 @@
-import keras.layers.core
+import pandas as pd
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.models import model_from_json
-import matplotlib.pyplot as plt
-import build_dataset
+import joblib
 import util as util
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
-dataset = np.loadtxt('data/allurls_test1.csv', delimiter=',', skiprows=1)
+dataset = pd.read_csv('data/shorterurls_test1.csv')
 
 # split into input (X) and output (Y) variables
-X = dataset[:, 0:46]
-Y = dataset[:, 46]
+X = dataset.iloc[:, 0:46].values
+y = dataset.iloc[:, 46].values
 
+# split into training and testing data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=0)
+
+# scale values
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
 # construct model
-model = Sequential()
-model.add(Dense(24, input_dim=46, activation='relu'))
-model.add(Dense(16, activation='relu'))
-model.add(Dense(8, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
-
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-history = model.fit(X, Y, validation_split=0.10, epochs=50, batch_size=32)
-
-_, accuracy = model.evaluate(X)
-print('Accuracy:: %.2f' % (accuracy * 100))
-
-util.visualize_trainingdata(history)
+regressor = RandomForestClassifier(n_estimators=50, random_state=10, verbose=1)
+regressor.fit(X_train, y_train)
+y_pred = regressor.predict(X_test)
+# print results
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+print(accuracy_score(y_test, y_pred))
 
 modelsave = input('Save this model? Y/N')
 
-if modelsave == "Y":
-    # serialize model to json and save weights
-    model_json = model.to_json()
-    with open('model/model.json', 'w') as json_file:
-        json_file.write(model_json)
-        print('Serialized model saved.')
-        json_file.close()
-
-    model.save_weights('model/model_weights.h5')
-    print('Saved model weights.')
+if modelsave == "Y" or modelsave == "y":
+    # save model as pickle file
+    filename = "model/rf_model.joblib"
+    joblib.dump(regressor, filename)
 else:
     print('Done')

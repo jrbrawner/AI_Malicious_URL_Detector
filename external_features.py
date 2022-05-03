@@ -6,10 +6,23 @@ from urllib.parse import urlparse
 from requests import get
 from bs4 import BeautifulSoup
 from pyquery import PyQuery
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+import re
+
 
 class ExternalFeatures:
     def __init__(self, url):
         self.url = url
+
+        #some provided urls may not start with http or https which causes problems with making requests,
+        #if neither is detected, add http by default and we will check for actual scheme used later
+        if self.url.startswith('http://') is True or self.url.startswith('https://'):
+            self.http = True
+        else:
+            self.url = 'http://' + self.url
+            self.http = False
 
         try:
             self.whois = whois.whois(str(urlparse(url).hostname))
@@ -18,16 +31,18 @@ class ExternalFeatures:
 
         try:
             self.response = get(self.url, timeout=10)
-            self.pq = PyQuery(self.response.text)
+
+            if self.response is not None:
+                self.pq = PyQuery(self.response.text)
+                self.soup = BeautifulSoup(str(self.response.content), 'html.parser')
+            else:
+                self.pq = None
+                self.soup = None
         except:
             print('Get request error.')
             self.response = None
             self.pq = None
-
-        try:
-            self.soup = BeautifulSoup(str(self.response.content), 'html.parser')
-        except:
-            print('Couldnt reach page.')
+            self.soup = None
 
     # months since domain was registered, using average days in a month
     def months_since_creation(self):
@@ -51,7 +66,7 @@ class ExternalFeatures:
             expiration_date = self.whois.expiration_date[0]
 
         except AttributeError:
-            #couldnt resolve query so no value for expiration date
+            # couldnt resolve query so no value for expiration date
             return 0
         except:
             expiration_date = self.whois.expiration_date
@@ -93,7 +108,8 @@ class ExternalFeatures:
 
     def body_length(self):
         try:
-            return len(self.soup.find('body').text)
+            if self.soup is not None:
+                return len(self.soup.find('body').text)
         except:
             return 0
 
@@ -141,7 +157,6 @@ class ExternalFeatures:
         key = 'soo8scggk4woo0c00o4gsgckgg8wkoowwokcg40g'
         url = 'https://openpagerank.com/api/v1.0/getPageRank?domains%5B0%5D=' + str(domain)
         try:
-
             request = requests.get(url, headers={'API-OPR': key})
             result = request.json()
             result = result['response'][0]['page_rank_integer']
@@ -152,8 +167,30 @@ class ExternalFeatures:
         except:
             return -1
 
+    def is_https(self):
+        if self.http is False:
+            #this method of checking scheme takes quite some time, i will try to optimize later
+            print('Have to check http scheme.')
+            options = Options()
+            options.headless = True
+            driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+            driver.get(self.url)
+            autoUrl = driver.current_url
+            httpScheme = autoUrl[:autoUrl.find(":")]
+            if httpScheme == 'https':
+                print('We added http to url, the page is using https but wasnt included in url.')
+                return 1
+            else:
+                print('We added http to url, the page is using http but wasnt included in url.')
+                return 0
 
-
+        if self.http is True:
+            if self.url.startswith("https://"):
+                print('We didnt add http to url, and url is using https')
+                return 1
+            else:
+                print('We didnt add http to url, and url is using http')
+                return 0
 
     def build(self):
         data = [self.months_since_creation(),
@@ -166,6 +203,7 @@ class ExternalFeatures:
                 self.script_length(),
                 self.specialCharacters(),
                 self.scriptToBodyRatio(),
-                self.page_rank()]
+                self.page_rank(),
+                self.is_https()]
 
         return data

@@ -8,7 +8,7 @@ import ipaddress as ipaddr
 
 
 phishingHints = ['wp', 'login', 'includes', 'admin', 'content', 'site', 'images', 'js', 'alibaba', 'css', 'myaccount',
-                 'dropbox', 'themes', 'plugins', 'signin', 'view']
+                 'dropbox', 'themes', 'plugins', 'signin', 'view', 'cmd']
 
 
 def file_to_list_filepath(filepath):
@@ -109,13 +109,6 @@ class BasicFeatures:
         if params[0] == "[]":
             params.remove("[]")
         return len(params)
-
-    # determines whether the url is using https or http
-    def is_https(self):
-        scheme = urlparse(self.url).scheme
-        if scheme == 'https':
-            return 1
-        return 0
 
     # returns the ratio of letters in hostname compared to letters in full url
     def ratio_hostname_2length(self):
@@ -223,7 +216,6 @@ class BasicFeatures:
         data.append(self.count_bslash())
         data.append(self.count_digits())
         data.append(self.count_url_params())
-        data.append(self.is_https())
 
         data.append(self.ratio_hostname_2length())
         data.append(self.url_entropy())
