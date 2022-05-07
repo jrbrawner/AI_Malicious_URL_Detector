@@ -110,6 +110,8 @@ class ExternalFeatures:
         try:
             if self.soup is not None:
                 return len(self.soup.find('body').text)
+            else:
+                return 0
         except:
             return 0
 
