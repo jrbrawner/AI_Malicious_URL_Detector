@@ -67,7 +67,7 @@ if graph_pic == "Y" or graph_pic == 'y':
     # Write graph to a png file
     graph.write_png('model/tree.png')
 
-    visualize = input('Visualize feature importance? Y/N')
+visualize = input('Visualize feature importance? Y/N')
 
 if visualize == 'Y' or visualize == 'y':
     start_time = time.time()
@@ -85,6 +85,7 @@ if visualize == 'Y' or visualize == 'y':
     ax.set_ylabel("Mean accuracy decrease")
     fig.tight_layout()
     plt.show()
+    print('Done')
 else:
     print('Done')
 
